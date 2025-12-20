@@ -37,23 +37,32 @@ def create_dataloader_v1(txt, batch_size=4, max_length=256, stride=128,
 
     return dataloader
 
-with open("the-verdict.txt", "r", encoding="utf-8") as f:
+with open("../the-verdict.txt", "r", encoding="utf-8") as f:
     raw_text = f.read()
 
-dataloader = create_dataloader_v1(raw_text, batch_size=8, max_length=4, stride=4, shuffle=False)
+max_length = 4
+dataloader = create_dataloader_v1(raw_text, batch_size=8, max_length=max_length, stride=4, shuffle=False)
 data_iter = iter(dataloader)
 
 inputs, targets = next(data_iter)
 print("Inputs:\n", inputs)
 print("Targets:\n", targets)
 
-vocab_size = 20257 # gpt vocab size
-embedding_dim = 3
+vocab_size = 20257 # gpt2 vocab size
+embedding_dim = 256
 
 # generate random weights tensor
 embedding_layer = torch.nn.Embedding(vocab_size, embedding_dim)
 
 # generate input embedding from the input tensor
-input_embedding = embedding_layer(inputs)
+token_embedding = embedding_layer(inputs)
+
+context_length = max_length
+pos_embedding_layer = torch.nn.Embedding(context_length, embedding_dim)
+pos_embedding = pos_embedding_layer(torch.arange(context_length))
+
+print("Positional Embeddings:\n", pos_embedding)
+
+input_embedding = token_embedding + pos_embedding
 
 print("Input Embedding Tensor:\n", input_embedding)
