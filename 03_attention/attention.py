@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import torch
 
+# NOTE: input embeddings are normally three dimensional
+# this is a single batch to simplify the example of the process.
 inputs = torch.tensor(
   [[0.43, 0.15, 0.89], # Your     (x^1)
    [0.55, 0.87, 0.66], # journey  (x^2)
@@ -51,8 +53,8 @@ attn_weights_2_naive = softmax_naive(attn_scores_2)
 # this is the more *correct* way of normalizing
 attn_weights_2 = torch.softmax(attn_scores_2, dim=0)
 
-print("Attention weights normalized using a Torch Softmax function:\n", 
-      attn_weights_2)
+#print("Attention weights normalized using a Torch Softmax function:\n", 
+#      attn_weights_2)
 
 # multiply the attention weights with the input embedding Vector
 context_vect_2 = torch.zeros(query.shape) 
@@ -61,3 +63,36 @@ for i, i_x in enumerate(inputs):
 
 # The wieghted sum of all input vectors
 print("Weighted sum:\n", context_vect_2)
+
+
+# lets do this for more than a single row
+# again lets start with calculating the weights from the input!
+attn_scores = torch.empty(6, 6)
+for i, i_x in enumerate(inputs):
+    for j, j_x in enumerate(inputs):
+        attn_scores[i, j] = torch.dot(i_x, j_x)
+
+# Python has built in method for matrix multiplication
+# This is much faster than the above for loop
+attn_scores = inputs @ inputs.T
+
+print("Calculated weights:\n", attn_scores)
+
+
+# Now let normalize the weights with a softmax function
+# in pytorch as you go inwards the dim increases
+# the -1 dimesion represents the last (deepest) dimesion
+attn_weights = torch.softmax(attn_scores, dim=-1)
+
+print("Normalized Attention Weights:\n", attn_scores)
+
+# output should add up to 1.0
+normalized_sum = torch.sum(attn_weights, dim=-1)
+
+print("Should be all summing to 1.0:\n", normalized_sum)
+
+# Finally, let's use matrix multiplication to compute the context vectors
+context_vect_all = attn_weights @ inputs
+
+print("The final context vector of the input:\n", context_vect_all)
+print("The previously validated 2nd row:\n", context_vect_2)

@@ -16,7 +16,7 @@
           config.allowUnfree = true;
         };
 
-        python = pkgs.python312;
+        python = pkgs.python313;
 
         pythonEnv = python.withPackages (ps: with ps; [
           # Jupyter bits
