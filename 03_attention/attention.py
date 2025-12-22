@@ -47,3 +47,17 @@ def softmax_naive(x):
 
 attn_weights_2_naive = softmax_naive(attn_scores_2)
 
+
+# this is the more *correct* way of normalizing
+attn_weights_2 = torch.softmax(attn_scores_2, dim=0)
+
+print("Attention weights normalized using a Torch Softmax function:\n", 
+      attn_weights_2)
+
+# multiply the attention weights with the input embedding Vector
+context_vect_2 = torch.zeros(query.shape) 
+for i, i_x in enumerate(inputs):
+    context_vect_2 += attn_weights_2[i]*i_x
+
+# The wieghted sum of all input vectors
+print("Weighted sum:\n", context_vect_2)
