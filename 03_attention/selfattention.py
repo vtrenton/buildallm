@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
-import torch
 import torch.nn as nn
 
 class SelfAttention(nn.Module):
     def __init__(self, d_in, d_out):
         super().__init__()
-        self.W_query = nn.Parameter(torch.rand(d_in, d_out), requires_grad=False)
-        self.W_key = nn.Parameter(torch.rand(d_in, d_out), requires_grad=False)
-        self.W_value = nn.Parameter(torch.rand(d_in, d_out), requires_grad=False)
+        self.W_query = nn.Linear(d_in, d_out, qkv_bias=False) #nn.Parameter(torch.rand(d_in, d_out), requires_grad=False)
+        self.W_key = nn.Linear(d_in, d_out, qkv_bias=False) #nn.Parameter(torch.rand(d_in, d_out), requires_grad=False)
+        self.W_value = nn.Linear(d_in, d_out, qkv_bias=False) #nn.Parameter(torch.rand(d_in, d_out), requires_grad=False)
 
     def forward(self, x):
         queries = x @ self.W_query
