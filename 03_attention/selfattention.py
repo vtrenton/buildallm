@@ -39,20 +39,34 @@ sa = SelfAttention(d_in, d_out)
 queries = sa.W_query(inputs)
 keys = sa.W_key(inputs)
 attn_scores = queries @ keys.T
-attn_weights = torch.softmax(attn_scores / keys.shape[-1]**0.5, dim=-1)
-print(f"attention weights:\n", attn_weights)
+print(attn_scores)
 
-# let's now mask the attention weights before getting the context vector
+###### OLD METHOD #####
+#attn_weights = torch.softmax(attn_scores / keys.shape[-1]**0.5, dim=-1)
+#print(f"attention weights:\n", attn_weights)
+#
+## let's now mask the attention weights before getting the context vector
+#context_length = attn_scores.shape[0]
+#mask_simple = torch.tril(torch.ones(context_length, context_length))
+#print(f"Input Mask:\n", mask_simple)
+#
+## apply the mask to the attention weights
+#mask_simple = attn_weights*mask_simple
+#print(f"Mask applied to weights:\n", mask_simple)
+#
+## Normalize the masked weights
+#row_sums = mask_simple.sum(dim=-1, keepdim=True)
+#mask_simple_norm = mask_simple / row_sums # tensor denominator propegation
+#print(f"Masked weights normalized:\n", mask_simple_norm)
 
+##### CLEANER METHOD #####
+# we can Normalize the mask directly via the softmax function
 context_length = attn_scores.shape[0]
-mask_simple = torch.tril(torch.ones(context_length, context_length))
-print(f"Input Mask:\n", mask_simple)
+mask = torch.triu(torch.ones(context_length, context_length), diagonal=1)
+print(mask)
+masked = attn_scores.masked_fill(mask.bool(), -torch.inf)
+print(masked)
 
-# apply the mask to the attention weights
-mask_simple = attn_weights*mask_simple
-print(f"Mask applied to weights:\n", mask_simple)
-
-# Normalize the masked weights
-row_sums = mask_simple.sum(dim=-1, keepdim=True)
-mask_simple_norm = mask_simple / row_sums # tensor denominator propegation
-print(f"Masked weights normalized:\n", mask_simple_norm)
+# Now apply the softmax
+attn_weights = torch.softmax(masked / keys.shape[-1]**0.5, dim=-1)
+print(attn_weights)
