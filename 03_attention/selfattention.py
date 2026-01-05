@@ -46,6 +46,17 @@ class CasualAttention(nn.Module):
         context_vec = attn_weights @ values
         return context_vec
 
+class MultiHeadAttentionWrapper(nn.Module):
+    def __init__(self, d_in, d_out, context_length, dropout, num_heads, qkv_bias=False):
+        super().__init__()
+        self.heads = nn.ModuleList(CasualAttention[d_in, d_out, context_length, dropout, qkv_bias)
+                                   for i in range(num_heads)]
+
+    def forward(self, x):
+        return torch.cat([head(x) for head in self.heads], dim=-1])
+
+
+
 inputs = torch.tensor(
   [[0.43, 0.15, 0.89], # Your     (x^1)
    [0.55, 0.87, 0.66], # journey  (x^2)
