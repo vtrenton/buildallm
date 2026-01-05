@@ -5,8 +5,9 @@ import torch.nn as nn
 class MultiHeadAttention(nn.Module):
     def __init__(self, d_in, d_out, context_length, dropout, num_heads, qkv_bias=False):
         super().__init__()
-        assert(d_out % num_heads == 0, 
-               "d_out must be divisible by the number of heads")
+        assert(d_out % num_heads == 0), \
+               "d_out must be divisible by the number of heads"
+
         self.d_out = d_out
         self.num_heads = num_heads
         self.head_dim = d_out // num_heads
@@ -162,12 +163,12 @@ print(batch.shape)
 #dropout = nn.Dropout(0.5)
 #
 #print(dropout(attn_weights))
-torch.manual_seed(123)
-context_length = batch.shape[1] # number of tokens
-d_in, d_out = 3, 1 # Ex 3.2: 2 -> 1 for d_out.
-mha = MultiHeadAttentionWrapper(d_in, d_out, context_length, 0.0, num_heads=2)
-context_vecs = mha(batch)
-
-print(context_vecs)
-print("Shape of context vectors:\n", context_vecs.shape)
+#torch.manual_seed(123)
+#context_length = batch.shape[1] # number of tokens
+#d_in, d_out = 3, 1 # Ex 3.2: 2 -> 1 for d_out.
+#mha = MultiHeadAttentionWrapper(d_in, d_out, context_length, 0.0, num_heads=2)
+#context_vecs = mha(batch)
+#
+#print(context_vecs)
+#print("Shape of context vectors:\n", context_vecs.shape)
 
