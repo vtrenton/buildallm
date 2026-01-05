@@ -19,7 +19,7 @@ class SelfAttention(nn.Module):
         return context_vec
 
 class CasualAttention(nn.Module):
-    def __init__(self, d_in, d_out, context_length, dropout, qkv_bias=False):\
+    def __init__(self, d_in, d_out, context_length, dropout, qkv_bias=False):
             super().__init__()
             self.d_out = d_out
             self.W_query = nn.Linear(d_in, d_out, bias=qkv_bias)
@@ -38,10 +38,10 @@ class CasualAttention(nn.Module):
         values = self.W_value(x)
 
         attn_scores = queries @ keys.transpose(1, 2)
-        attn_scores = masked_fill_(
+        attn_scores.masked_fill_(
                 self.mask.bool()[:num_tokens, :num_tokens], -torch.inf)
-        attn_scores = torch.softmax(attn_scores / keys.shape[-1]**0.5, dim=-1)
-        attn_weights = dropout(attn_weights) # apply dropout to weights
+        attn_weights = torch.softmax(attn_scores / keys.shape[-1]**0.5, dim=-1)
+        attn_weights = self.dropout(attn_weights) # apply dropout to weights
 
         context_vec = attn_weights @ values
         return context_vec
@@ -49,11 +49,11 @@ class CasualAttention(nn.Module):
 class MultiHeadAttentionWrapper(nn.Module):
     def __init__(self, d_in, d_out, context_length, dropout, num_heads, qkv_bias=False):
         super().__init__()
-        self.heads = nn.ModuleList(CasualAttention[d_in, d_out, context_length, dropout, qkv_bias)
-                                   for i in range(num_heads)]
+        self.heads = nn.ModuleList([CasualAttention(d_in, d_out, context_length, dropout, qkv_bias)
+                                   for i in range(num_heads)])
 
     def forward(self, x):
-        return torch.cat([head(x) for head in self.heads], dim=-1])
+        return torch.cat([head(x) for head in self.heads], dim=-1)
 
 
 
@@ -66,18 +66,21 @@ inputs = torch.tensor(
    [0.05, 0.80, 0.55]] # step     (x^6)
 )
 
-torch.manual_seed(789)
-d_in = inputs.shape[1]
-d_out = 2
+batch = torch.stack((inputs, inputs), dim=0)
+print(batch.shape)
 
-sa = SelfAttention(d_in, d_out)
-#print(sa(inputs))
-
-
-# masked attention method
-queries = sa.W_query(inputs)
-keys = sa.W_key(inputs)
-attn_scores = queries @ keys.T
+#torch.manual_seed(789)
+#d_in = inputs.shape[1]
+#d_out = 2
+#
+#sa = SelfAttention(d_in, d_out)
+##print(sa(inputs))
+#
+#
+## masked attention method
+#queries = sa.W_query(inputs)
+#keys = sa.W_key(inputs)
+#attn_scores = queries @ keys.T
 
 ###### OLD METHOD #####
 #attn_weights = torch.softmax(attn_scores / keys.shape[-1]**0.5, dim=-1)
@@ -99,17 +102,26 @@ attn_scores = queries @ keys.T
 
 ##### CLEANER METHOD #####
 # we can Normalize the mask directly via the softmax function
-context_length = attn_scores.shape[0]
-mask = torch.triu(torch.ones(context_length, context_length), diagonal=1)
-masked = attn_scores.masked_fill(mask.bool(), -torch.inf)
-
-# Now apply the softmax
-attn_weights = torch.softmax(masked / keys.shape[-1]**0.5, dim=-1)
-print(attn_weights)
-
-
-# apply dropout method
+#context_length = attn_scores.shape[0]
+#mask = torch.triu(torch.ones(context_length, context_length), diagonal=1)
+#masked = attn_scores.masked_fill(mask.bool(), -torch.inf)
+#
+## Now apply the softmax
+#attn_weights = torch.softmax(masked / keys.shape[-1]**0.5, dim=-1)
+#print(attn_weights)
+#
+#
+## apply dropout method
+#torch.manual_seed(123)
+#dropout = nn.Dropout(0.5)
+#
+#print(dropout(attn_weights))
 torch.manual_seed(123)
-dropout = nn.Dropout(0.5)
+context_length = batch.shape[1] # number of tokens
+d_in, d_out = 3, 2
+mha = MultiHeadAttentionWrapper(d_in, d_out, context_length, 0.0, num_heads=2)
+context_vecs = mha(batch)
 
-print(dropout(attn_weights))
+print(context_vecs)
+print("Shape of context vector:\n", context_vecs.shape)
+
