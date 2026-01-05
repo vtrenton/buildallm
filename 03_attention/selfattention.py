@@ -114,7 +114,6 @@ inputs = torch.tensor(
 )
 
 batch = torch.stack((inputs, inputs), dim=0)
-print(batch.shape)
 
 #torch.manual_seed(789)
 #d_in = inputs.shape[1]
@@ -172,3 +171,10 @@ print(batch.shape)
 #print(context_vecs)
 #print("Shape of context vectors:\n", context_vecs.shape)
 
+
+torch.manual_seed(123)
+batch_size, context_length, d_in = batch.shape
+d_out = 2
+mha = MultiHeadAttention(d_in, d_out, context_length, 0.0, num_heads=2)
+context_vecs = mha(batch)
+print("Shape of context vectors:\n", context_vecs.shape)
