@@ -39,7 +39,6 @@ sa = SelfAttention(d_in, d_out)
 queries = sa.W_query(inputs)
 keys = sa.W_key(inputs)
 attn_scores = queries @ keys.T
-print(attn_scores)
 
 ###### OLD METHOD #####
 #attn_weights = torch.softmax(attn_scores / keys.shape[-1]**0.5, dim=-1)
@@ -63,9 +62,7 @@ print(attn_scores)
 # we can Normalize the mask directly via the softmax function
 context_length = attn_scores.shape[0]
 mask = torch.triu(torch.ones(context_length, context_length), diagonal=1)
-print(mask)
 masked = attn_scores.masked_fill(mask.bool(), -torch.inf)
-print(masked)
 
 # Now apply the softmax
 attn_weights = torch.softmax(masked / keys.shape[-1]**0.5, dim=-1)
